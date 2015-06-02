@@ -1,21 +1,27 @@
-
-import numpy as np
-import fileinput
+import numpy as _np
+import fileinput as _fileinput
 
 def read_sp_files(files):
     """Read all *.singlepulse files in the current directory in a DM range.
         Return 5 arrays (properties of all single pulses):
                 DM, sigma, time, sample, downfact."""
-    finput = fileinput.input(files)
-    data = np.loadtxt(finput,
-                       dtype=np.dtype([('dm', 'float32'),
+    finput = _fileinput.input(files)
+    data = _np.loadtxt(finput,
+                       dtype=_np.dtype([('dm', 'float32'),
                                         ('sigma','float32'),
                                         ('time','float32'),
                                         ('sample','uint32'),
                                         ('downfact','uint8')]))
-    return np.atleast_2d(data)
+    return _np.atleast_2d(data)
 
 def read_tarfile(filenames, names, tar):
+    """Read in the .singlepulse.tgz file instead of individual .singlepulse files.
+        Return an array of (properties of all single pulses):
+              DM, sigma, time, sample, downfact. 
+        Input: filenames: names of all the singlepulse files.
+               names: subset of filenames. Names of the singlepulse files to be 
+               plotted in DM vs time.
+               tar: tar file (.singlepulse.tgz)."""  
     members = []
     for name in names:
         if name in filenames:
@@ -29,33 +35,33 @@ def read_tarfile(filenames, names, tar):
         file = tar.extractfile(mem)
         for line in file.readlines():
             fileinfo.append(line)
-        filearr+=(fileinfo[1:])
+        filearr+=(fileinfo[1:])  #Removes the text labels ("DM", "sigma" etc) of the singlepulse properties. Only keeps the values. 
         fileinfo = []
     temp_list = []
     for i in range(len(filearr)):
         temp_line = filearr[i].split()
         temp_list.append(temp_line)
-    main_array = np.asarray(temp_list)
-    main_array = np.split(main_array, 5, axis=1)
-    main_array[0] = main_array[0].astype(np.float16)
-    main_array[1] = main_array[1].astype(np.float16)
-    main_array[2] = main_array[2].astype(np.float16)
-    main_array[3] = main_array[3].astype(np.int)
-    main_array[4] = main_array[4].astype(np.int)
+    main_array = _np.asarray(temp_list)
+    main_array = _np.split(main_array, 5, axis=1)
+    main_array[0] = main_array[0].astype(_np.float16)
+    main_array[1] = main_array[1].astype(_np.float16)
+    main_array[2] = main_array[2].astype(_np.float16)
+    main_array[3] = main_array[3].astype(_np.int)
+    main_array[4] = main_array[4].astype(_np.int)
     return main_array
 def gen_arrays(dm, threshold, sp_files, tar):    
     """
     Extract dms, times and signal to noise from each singlepulse file as 1D arrays.
     """
-    max_dm = np.ceil(np.max(dm)).astype('int')
-    min_dm = np.min(dm).astype('int')
+    max_dm = _np.ceil(_np.max(dm)).astype('int')
+    min_dm = _np.min(dm).astype('int')
     diff_dm = max_dm-min_dm
     ddm = min_dm-diff_dm
     if (ddm <= 0):
         ddm = 0
-    dmss = np.zeros((1,)).astype('float32')
-    timess = np.zeros((1,)).astype('float32')
-    sigmass = np.zeros((1,)).astype('float32')
+    dmss = _np.zeros((1,)).astype('float32')
+    timess = _np.zeros((1,)).astype('float32')
+    sigmass = _np.zeros((1,)).astype('float32')
     ind = []
     dm_time_files = []
     for i in range(ddm,(max_dm+diff_dm)):
@@ -115,21 +121,21 @@ def gen_arrays(dm, threshold, sp_files, tar):
             except:
                 pass
         if tar is not None:
-            dms = np.reshape(data[0],(len(data[0]),))
-            times = np.reshape(data[2],(len(data[1]),))
-            sigmas = np.reshape(data[1],(len(data[2]),))
+            dms = _np.reshape(data[0],(len(data[0]),))
+            times = _np.reshape(data[2],(len(data[1]),))
+            sigmas = _np.reshape(data[1],(len(data[2]),))
         else:
             dms = data['dm']
             times = data['time']
             sigmas = data['sigma']
-        dms = np.concatenate((dmss, dms), axis = 0)
+        dms = _np.concatenate((dmss, dms), axis = 0)
         dmss = dms
-        times = np.concatenate((timess, times), axis = 0)
+        times = _np.concatenate((timess, times), axis = 0)
         timess = times
-        sigmas = np.concatenate((sigmass, sigmas), axis = 0)
+        sigmas = _np.concatenate((sigmass, sigmas), axis = 0)
         sigmass = sigmas
-    dms = np.delete(dms, (0), axis = 0)
-    times = np.delete(times, (0), axis = 0)
-    sigmas = np.delete(sigmas, (0), axis = 0)
+    dms = _np.delete(dms, (0), axis = 0)
+    times = _np.delete(times, (0), axis = 0)
+    sigmas = _np.delete(sigmas, (0), axis = 0)
     return dms, times, sigmas, dm_time_files
 
