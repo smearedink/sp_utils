@@ -15,6 +15,13 @@ def read_sp_files(files):
     return _np.atleast_2d(data)
 
 def read_tarfile(filenames, names, tar):
+    """Read in the .singlepulse.tgz file instead of individual .singlepulse files.
+        Return an array of (properties of all single pulses):
+              DM, sigma, time, sample, downfact. 
+        Input: filenames: names of all the singlepulse files.
+               names: subset of filenames. Names of the singlepulse files to be 
+               plotted in DM vs time.
+               tar: tar file (.singlepulse.tgz)."""  
     members = []
     for name in names:
         if name in filenames:
@@ -28,7 +35,7 @@ def read_tarfile(filenames, names, tar):
         file = tar.extractfile(mem)
         for line in file.readlines():
             fileinfo.append(line)
-        filearr+=(fileinfo[1:])
+        filearr+=(fileinfo[1:])  #Removes the text labels ("DM", "sigma" etc) of the singlepulse properties. Only keeps the values. 
         fileinfo = []
     temp_list = []
     for i in range(len(filearr)):
@@ -45,6 +52,16 @@ def read_tarfile(filenames, names, tar):
 def gen_arrays(dm, threshold, sp_files, tar):    
     """
     Extract dms, times and signal to noise from each singlepulse file as 1D arrays.
+    Input: 
+           dm: The dm array of the main pulse. Used to decide the DM range in the DM vs time plot and pick out singlepulse files with those DMs.
+           threshold: Min signal to noise of the single pulse event that is plotted.
+           sp_files: all the .singlepulse file names.
+           tar: Instead of the providing individual singlepulse files, you can provide the .singlepulse.tgz tarball.
+    Output:
+           Arrays: dms, times, sigmas of the singlepulse events and an array of dm_vs_times file names.
+           
+    Options: Either a tarball of singlepulse files or individual singlepulse files can be supplied.
+             Faster when individual singlepulse files are supplied.   
     """
     max_dm = _np.ceil(_np.max(dm)).astype('int')
     min_dm = _np.min(dm).astype('int')
@@ -131,4 +148,23 @@ def gen_arrays(dm, threshold, sp_files, tar):
     times = _np.delete(times, (0), axis = 0)
     sigmas = _np.delete(sigmas, (0), axis = 0)
     return dms, times, sigmas, dm_time_files
+
+def read_spd(spd_file, tar = None):
+    """ 
+       Reads in all the .spd and the .singlepulse.tgz info that can reproduce the sp plots.
+       Inputs: spd_file: .spd file
+               .singlepulse.tgz: if not supplied, it will only output .spd info. 
+                                 Default: not supplied. 
+       Output: An object that has all the relevant information to remake the plot. 
+    """
+    sp = spd(spd_file)
+    if tar is not None:
+        dmVt_dms, dmVt_times, dmVt_sigmas, dmVt_files = gen_arrays(sp.dmVt_this_dms, threshold = 5, sp.spfiles, tar)
+        sp.dmVt_dms = dmVt_dms
+        sp.dmVt_times = dmVt_times
+        sp.dmVt_sigmas = dmVt_sigmas
+        return sp
+    else:
+        return sp 
+
 
