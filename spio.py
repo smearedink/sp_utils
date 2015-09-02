@@ -159,7 +159,7 @@ def read_spd(spd_file, tar = None):
     """
     sp = spd(spd_file)
     if tar is not None:
-        dmVt_dms, dmVt_times, dmVt_sigmas, dmVt_files = gen_arrays(sp.dmVt_this_dms, threshold = 5, sp.spfiles, tar)
+        dmVt_dms, dmVt_times, dmVt_sigmas, dmVt_files = gen_arrays(sp.dmVt_this_dms, 5, sp.spfiles, tar)
         sp.dmVt_dms = dmVt_dms
         sp.dmVt_times = dmVt_times
         sp.dmVt_sigmas = dmVt_sigmas
