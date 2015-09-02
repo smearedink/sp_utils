@@ -95,7 +95,6 @@ class spd:
         self.data_nozerodm = dd['Data_nozerodm']
         self.data_nozerodm_dedisp = dd['Data_dedisp_nozerodm']
          
-        self.spfiles = dd['singlepulse_files']
         self.dmVt_this_dms = dd['dm_arr']
         self.dmVt_this_times = _np.array(dd['time_list'])
         self.dmVt_this_sigmas = dd['sigma_arr']
@@ -174,10 +173,10 @@ def ddm_response(ddm, width_ms, band_MHz=(1214., 1537.)):
         (default: the Arecibo Mock band)
     """
     if _np.isscalar(ddm):
-        ddm = _np.array([ddm])
+        ddm = _np.array([float(ddm)])
         scal = True
     else:
-        ddm = _np.array(ddm)
+        ddm = _np.array(ddm, dtype=float)
         scal = False
     band_MHz = _np.array(band_MHz)
     zeta = 6.91e-3 * ddm * _np.diff(band_MHz)[0] / (width_ms * (_np.mean(band_MHz)/1000.)**3)
